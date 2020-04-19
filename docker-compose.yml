@@ -1,0 +1,34 @@
+version: '3.3'
+
+services:
+    db:
+        image: mysql:5.7
+        container_name: mysql_dev
+        volumes:
+            - db_volume:/var/lib/mysql
+        restart: always
+        environment:
+            MYSQL_ROOT_PASSWORD: somewordpress
+            MYSQL_DATABASE: wordpress
+            MYSQL_USER: db_user
+            MYSQL_PASSWORD: db_pass
+
+    wordpress:
+        build: ./wordpress
+        container_name: wordpress_dev
+        volumes:
+            - ./plugin:/var/www/html/wp-content/plugins/plugin
+        ports:
+            - "8000:80"
+        restart: always
+        environment:
+            WORDPRESS_DB_HOST: db:3306
+            WORDPRESS_DB_USER: db_user
+            WORDPRESS_DB_PASSWORD: db_pass
+            WORDPRESS_DB_NAME: wordpress
+            WORDPRESS_DEBUG: 1
+        depends_on:
+            - db
+
+volumes:
+    db_volume: {}
