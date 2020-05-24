@@ -3,9 +3,9 @@ version: '3.3'
 services:
     db:
         image: mysql:5.7
-        container_name: mysql_dev
+        container_name: mysql_wp
         volumes:
-            - db_volume:/var/lib/mysql
+            - db_volume_wp:/var/lib/mysql
         restart: always
         environment:
             MYSQL_ROOT_PASSWORD: somewordpress
@@ -13,22 +13,47 @@ services:
             MYSQL_USER: db_user
             MYSQL_PASSWORD: db_pass
 
-    wordpress:
-        build: ./wordpress
-        container_name: wordpress_dev
-        volumes:
-            - ./plugin:/var/www/html/wp-content/plugins/plugin
-        ports:
-            - "8000:80"
-        restart: always
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        container_name: pma_wp
         environment:
-            WORDPRESS_DB_HOST: db:3306
-            WORDPRESS_DB_USER: db_user
-            WORDPRESS_DB_PASSWORD: db_pass
-            WORDPRESS_DB_NAME: wordpress
-            WORDPRESS_DEBUG: 1
+            - PMA_ARBITRARY=1
+            - PMA_HOST=db
+            - PMA_USER=db_user
+            - PMA_PASSWORD=db_pass
+        restart: always
+        ports:
+            - "8080:80"
+        volumes:
+            - /sessions
+
+    wordpress:
+        image: wordpress:php7.2-fpm-alpine
+        container_name: wordpress_wp
+        volumes:
+            - ./wordpress:/var/www/wordpress
         depends_on:
             - db
+        environment:
+            MYSQL_ROOT_PASSWORD: somewordpress
+            WORDPRESS_DB_NAME: wordpress
+            WORDPRESS_DB_USER: db_user
+            WORDPRESS_DB_PASSWORD: db_pass
+            WORDPRESS_DB_HOST: db
+            WORDPRESS_TABLE_PREFIX: wp_
+        links:
+            - db
+        restart: always
+
+    web:
+        image: pagespeed/nginx-pagespeed
+        volumes:
+            - ./nginx:/etc/nginx/conf.d
+            - ./wordpress:/var/www/wordpress
+        ports:
+            - "80:80"
+        links:
+            - wordpress
 
 volumes:
-    db_volume: {}
+    db_volume_wp: {}
