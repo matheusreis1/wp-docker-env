@@ -1,5 +1,5 @@
 # wp-docker-env
-Docker solution to develop wordpress plugins
+Docker solution to develop wordpress plugins with Pagespeed Nginx
 
 ## How to use
 - Clone this repository
